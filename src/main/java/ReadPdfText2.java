@@ -1,16 +1,11 @@
 import com.opencsv.CSVWriter;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.*;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 public class ReadPdfText2 {
 
@@ -30,6 +25,7 @@ public class ReadPdfText2 {
 
     public static final String FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\p23100.pdf";
     public static final String CHL_EXCEL_PATH = "C:\\Users\\HuanTech PC\\Desktop\\chl excel.xlsx";
+    public static final String CSV_FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\chl_excel.csv";
     private static int rowToriAiNum;
 
     public static void main(String[] args) {
@@ -172,7 +168,7 @@ public class ReadPdfText2 {
         System.out.println("\n" + kirirosu);
     }
 
-    /*private static void writeDataToExcel() {
+ /*   private static void writeDataToExcel() {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Sheet1");
 
@@ -196,11 +192,11 @@ public class ReadPdfText2 {
         row3.createCell(2).setCellValue(rowToriAiNum);
         row3.createCell(3).setCellValue(1);
 
-        // Ghi kouJiMe, kyakuSakiMei, shortNouKi, kirirosu vào ô D4, D5, D6, D7
-        sheet.createRow(3).createCell(3).setCellValue(kouJiMe);
-        sheet.createRow(4).createCell(3).setCellValue(kyakuSakiMei);
-        sheet.createRow(5).createCell(3).setCellValue(shortNouKi);
-        sheet.createRow(6).createCell(3).setCellValue(kirirosu);
+//        // Ghi kouJiMe, kyakuSakiMei, shortNouKi, kirirosu vào ô D4, D5, D6, D7
+//        sheet.createRow(3).createCell(3).setCellValue(kouJiMe);
+//        sheet.createRow(4).createCell(3).setCellValue(kyakuSakiMei);
+//        sheet.createRow(5).createCell(3).setCellValue(shortNouKi);
+//        sheet.createRow(6).createCell(3).setCellValue(kirirosu);
 
         int rowIndex = 3;
 
@@ -264,9 +260,8 @@ public class ReadPdfText2 {
     }*/
 
     private static void writeDataToCSV() {
-        String csvFilePath = "C:\\Users\\HuanTech PC\\Desktop\\chl_excel.csv";
 
-        try (CSVWriter writer = new CSVWriter(new OutputStreamWriter(new FileOutputStream(csvFilePath), Charset.forName("MS932")))) {
+        try (CSVWriter writer = new CSVWriter(new OutputStreamWriter(new FileOutputStream(CSV_FILE_PATH), Charset.forName("MS932")))) {
             // Ghi thời gian hiện tại vào dòng đầu tiên
             String currentTime = new SimpleDateFormat("yyMMddHHmm").format(new Date());
             writer.writeNext(new String[]{currentTime});
@@ -277,15 +272,11 @@ public class ReadPdfText2 {
             // Ghi koSyuNumMark, 1, rowToriAiNum, 1 vào dòng tiếp theo
             writer.writeNext(new String[]{koSyuNumMark, "1", String.valueOf(rowToriAiNum), "1"});
 
-            // Ghi kouJiMe, kyakuSakiMei, shortNouKi, kirirosu vào các dòng tiếp theo
-            writer.writeNext(new String[]{"", "", "", kouJiMe});
-            writer.writeNext(new String[]{"", "", "", kyakuSakiMei});
-            writer.writeNext(new String[]{"", "", "", shortNouKi});
-            writer.writeNext(new String[]{"", "", "", kirirosu});
+            List<String[]> toriaiDatas = new LinkedList<>();
 
             int rowIndex = 3;
 
-            // Ghi dữ liệu từ KA_KOU_PAIRS vào các dòng tiếp theo
+            // Ghi dữ liệu từ KA_KOU_PAIRS vào các ô
             for (Map.Entry<Map<Integer, Integer>, Map<Integer, Integer>> entry : KA_KOU_PAIRS.entrySet()) {
                 if (rowIndex >= 98) break;
 
@@ -297,6 +288,7 @@ public class ReadPdfText2 {
 
                 // Ghi dữ liệu từ mapkey vào ô C4
                 for (Map.Entry<Integer, Integer> kouZaiEntry : kouZaiChouPairs.entrySet()) {
+
                     keyTemp = kouZaiEntry.getKey();
                     valueTemp = kouZaiEntry.getValue();
                 }
@@ -305,13 +297,15 @@ public class ReadPdfText2 {
                 for (int i = 0; i < valueTemp; i++) {
                     for (Map.Entry<Integer, Integer> meiSyouEntry : meiSyouPairs.entrySet()) {
                         if (rowIndex >= 98) break;
-                        writer.writeNext(new String[]{
-                                String.valueOf(meiSyouEntry.getKey()),
-                                String.valueOf(meiSyouEntry.getValue()),
-                                String.valueOf(keyTemp)
-                        });
+
+                        String[] line = new String[4];
                         rowIndex++;
+                        line[0] = meiSyouEntry.getKey().toString();
+                        line[1] = meiSyouEntry.getValue().toString();
+
+                        toriaiDatas.add(line);
                     }
+                    toriaiDatas.get(toriaiDatas.size() - meiSyouPairs.size())[2] = String.valueOf(keyTemp);
                 }
             }
 
@@ -319,15 +313,17 @@ public class ReadPdfText2 {
             // cần tạo thêm 4 hàng này để ghi các thông tin kouJiMe, kyakuSakiMei, shortNouKi, kirirosu bên dưới
             for (int i = 0; i < 4; i++) {
                 if (rowIndex <= i + 3) {
-                    writer.writeNext(new String[]{"", "", "", ""});
+                    toriaiDatas.add(new String[4]);
                 }
             }
 
             // Ghi kouJiMe, kyakuSakiMei, shortNouKi, kirirosu vào ô D4, D5, D6, D7
-            writer.writeNext(new String[]{"", "", "", kouJiMe});
-            writer.writeNext(new String[]{"", "", "", kyakuSakiMei});
-            writer.writeNext(new String[]{"", "", "", shortNouKi});
-            writer.writeNext(new String[]{"", "", "", kirirosu});
+            toriaiDatas.get(0)[3] = kouJiMe;
+            toriaiDatas.get(1)[3] = kyakuSakiMei;
+            toriaiDatas.get(2)[3] = shortNouKi;
+            toriaiDatas.get(3)[3] = kirirosu;
+
+            writer.writeAll(toriaiDatas);
 
             // Ghi giá trị 0 vào các ô A99, B99, C99, D99
             writer.writeNext(new String[]{"0", "0", "0", "0"});
