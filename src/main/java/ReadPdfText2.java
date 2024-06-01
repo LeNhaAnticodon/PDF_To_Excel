@@ -3,9 +3,7 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -35,7 +33,8 @@ public class ReadPdfText2 {
         getFullToriaiText();
         getHeaderData();
         getToriaiData();
-        writeDataToExcel();
+//        writeDataToExcel();
+        writeDataToCSV();
     }
 
     private static void getFullToriaiText() {
@@ -170,7 +169,7 @@ public class ReadPdfText2 {
         System.out.println("\n" + kirirosu);
     }
 
-    private static void writeDataToExcel() {
+   /* private static void writeDataToExcel() {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Sheet1");
 
@@ -256,6 +255,76 @@ public class ReadPdfText2 {
         try (FileOutputStream fileOut = new FileOutputStream(CHL_EXCEL_PATH)) {
             workbook.write(fileOut);
             workbook.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }*/
+
+    private static void writeDataToCSV() {
+        String csvFilePath = "C:\\Users\\HuanTech PC\\Desktop\\chl_excel.csv";
+
+        try (PrintWriter writer = new PrintWriter(new FileWriter(csvFilePath))) {
+            // Ghi thời gian hiện tại vào dòng đầu tiên
+            String currentTime = new SimpleDateFormat("yyMMddHHmm").format(new Date());
+            writer.println(currentTime);
+
+            // Ghi size1, size2, size3, 1 vào dòng tiếp theo
+            writer.println(size1 + "," + size2 + "," + size3 + ",1");
+
+            // Ghi koSyuNumMark, 1, rowToriAiNum, 1 vào dòng tiếp theo
+            writer.println(koSyuNumMark + ",1," + rowToriAiNum + ",1");
+
+            // Ghi kouJiMe, kyakuSakiMei, shortNouKi, kirirosu vào các dòng tiếp theo
+            writer.println(",,," + kouJiMe);
+            writer.println(",,," + kyakuSakiMei);
+            writer.println(",,," + shortNouKi);
+            writer.println(",,," + kirirosu);
+
+            int rowIndex = 3;
+
+            // Ghi dữ liệu từ KA_KOU_PAIRS vào các dòng tiếp theo
+            for (Map.Entry<Map<Integer, Integer>, Map<Integer, Integer>> entry : KA_KOU_PAIRS.entrySet()) {
+                if (rowIndex >= 98) break;
+
+                Map<Integer, Integer> kouZaiChouPairs = entry.getKey();
+                Map<Integer, Integer> meiSyouPairs = entry.getValue();
+
+                int keyTemp = 0;
+                int valueTemp = 0;
+
+                // Ghi dữ liệu từ mapkey vào ô C4
+                for (Map.Entry<Integer, Integer> kouZaiEntry : kouZaiChouPairs.entrySet()) {
+                    keyTemp = kouZaiEntry.getKey();
+                    valueTemp = kouZaiEntry.getValue();
+                }
+
+                // Ghi dữ liệu từ mapvalue vào ô A4, B4 và các hàng tiếp theo
+                for (int i = 0; i < valueTemp; i++) {
+                    for (Map.Entry<Integer, Integer> meiSyouEntry : meiSyouPairs.entrySet()) {
+                        if (rowIndex >= 98) break;
+                        writer.println(meiSyouEntry.getKey() + "," + meiSyouEntry.getValue() + "," + keyTemp);
+                        rowIndex++;
+                    }
+                }
+            }
+
+            // nếu không có hàng sản phẩm nào thì sẽ chưa tạo hàng 4, 5, 6, 7 và rowIndex vẫn là 3
+            // cần tạo thêm 4 hàng này để ghi các thông tin kouJiMe, kyakuSakiMei, shortNouKi, kirirosu bên dưới
+            for (int i = 0; i < 4; i++) {
+                if (rowIndex <= i + 3) {
+                    writer.println(",,,");
+                }
+            }
+
+            // Ghi kouJiMe, kyakuSakiMei, shortNouKi, kirirosu vào ô D4, D5, D6, D7
+            writer.println(",,," + kouJiMe);
+            writer.println(",,," + kyakuSakiMei);
+            writer.println(",,," + shortNouKi);
+            writer.println(",,," + kirirosu);
+
+            // Ghi giá trị 0 vào các ô A99, B99, C99, D99
+            writer.println("0,0,0,0");
+
         } catch (IOException e) {
             e.printStackTrace();
         }
