@@ -37,8 +37,8 @@ public class ReadPdfText2 {
         getFullToriaiText();
         getHeaderData();
         getToriaiData();
-//        writeDataToExcel();
-        writeDataToCSV();
+        writeDataToExcel();
+//        writeDataToCSV();
     }
 
     private static void getFullToriaiText() {
@@ -200,12 +200,6 @@ public class ReadPdfText2 {
         row3.createCell(2).setCellValue(rowToriAiNum);
         row3.createCell(3).setCellValue(1);
 
-//        // Ghi kouJiMe, kyakuSakiMei, shortNouKi, kirirosu vào ô D4, D5, D6, D7
-//        sheet.createRow(3).createCell(3).setCellValue(kouJiMe);
-//        sheet.createRow(4).createCell(3).setCellValue(kyakuSakiMei);
-//        sheet.createRow(5).createCell(3).setCellValue(shortNouKi);
-//        sheet.createRow(6).createCell(3).setCellValue(kirirosu);
-
         int rowIndex = 3;
 
         // Ghi dữ liệu từ KA_KOU_PAIRS vào các ô
@@ -227,14 +221,16 @@ public class ReadPdfText2 {
 
             // Ghi dữ liệu từ mapvalue vào ô A4, B4 và các hàng tiếp theo
             for (int i = 0; i < valueTemp; i++) {
+                int j = 0;
                 for (Map.Entry<StringBuilder, Integer> meiSyouEntry : meiSyouPairs.entrySet()) {
                     if (rowIndex >= 102) break;
 
                     Row row = sheet.createRow(rowIndex++);
                     row.createCell(0).setCellValue(String.valueOf(meiSyouEntry.getKey()));
                     row.createCell(1).setCellValue(meiSyouEntry.getValue());
+                    j++;
                 }
-                sheet.getRow(rowIndex - meiSyouPairs.size()).createCell(2).setCellValue(keyTemp);
+                sheet.getRow(rowIndex - j).createCell(2).setCellValue(keyTemp);
             }
         }
 
@@ -303,6 +299,7 @@ public class ReadPdfText2 {
 
                 // Ghi dữ liệu từ mapvalue vào ô A4, B4 và các hàng tiếp theo
                 for (int i = 0; i < valueTemp; i++) {
+                    int j = 0;
                     for (Map.Entry<StringBuilder, Integer> meiSyouEntry : meiSyouPairs.entrySet()) {
                         if (rowIndex >= 102) break;
 
@@ -312,8 +309,9 @@ public class ReadPdfText2 {
                         line[1] = meiSyouEntry.getValue().toString();
 
                         toriaiDatas.add(line);
+                        j++;
                     }
-                    toriaiDatas.get(toriaiDatas.size() - meiSyouPairs.size())[2] = keyTemp;
+                    toriaiDatas.get(toriaiDatas.size() - j)[2] = keyTemp;
                 }
             }
 
