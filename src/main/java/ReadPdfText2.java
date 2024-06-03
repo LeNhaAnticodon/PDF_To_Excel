@@ -169,6 +169,7 @@ public class ReadPdfText2 {
 
         if (rowToriAiNum > 99) {
             rowToriAiNum = 99;
+            System.out.println("vượt quá 99 hàng");
         }
 
         System.out.println(rowToriAiNum);
