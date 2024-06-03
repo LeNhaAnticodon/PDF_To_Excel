@@ -28,9 +28,9 @@ public class ReadPdfText2 {
     private static String toriaiText = "";
     private static String[] kakuKakou;
 
-    public static final String FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\p23100.pdf";
-    public static final String CHL_EXCEL_PATH = "C:\\Users\\HuanTech PC\\Desktop\\chl excel.xlsx";
-    public static final String CSV_FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\p23100.csv";
+    public static final String FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\u5x50x100.pdf";
+    public static final String CHL_EXCEL_PATH = "C:\\Users\\HuanTech PC\\Desktop\\u5x50x100.xlsx";
+    public static final String CSV_FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\u5x50x100.csv";
     private static int rowToriAiNum;
 
     public static void main(String[] args) {
@@ -167,8 +167,8 @@ public class ReadPdfText2 {
             rowToriAiNum += kouZaiNum * meiSyouPairs.size();
         }
 
-        if (rowToriAiNum < 4) {
-            rowToriAiNum = 4;
+        if (rowToriAiNum > 99) {
+            rowToriAiNum = 99;
         }
 
         System.out.println(rowToriAiNum);
@@ -209,7 +209,7 @@ public class ReadPdfText2 {
 
         // Ghi dữ liệu từ KA_KOU_PAIRS vào các ô
         for (Map.Entry<Map<StringBuilder, Integer>, Map<StringBuilder, Integer>> entry : KA_KOU_PAIRS.entrySet()) {
-            if (rowIndex >= 98) break;
+            if (rowIndex >= 102) break;
 
             Map<StringBuilder, Integer> kouZaiChouPairs = entry.getKey();
             Map<StringBuilder, Integer> meiSyouPairs = entry.getValue();
@@ -227,7 +227,7 @@ public class ReadPdfText2 {
             // Ghi dữ liệu từ mapvalue vào ô A4, B4 và các hàng tiếp theo
             for (int i = 0; i < valueTemp; i++) {
                 for (Map.Entry<StringBuilder, Integer> meiSyouEntry : meiSyouPairs.entrySet()) {
-                    if (rowIndex >= 98) break;
+                    if (rowIndex >= 102) break;
 
                     Row row = sheet.createRow(rowIndex++);
                     row.createCell(0).setCellValue(String.valueOf(meiSyouEntry.getKey()));
@@ -285,7 +285,7 @@ public class ReadPdfText2 {
 
             // Ghi dữ liệu từ KA_KOU_PAIRS vào các ô
             for (Map.Entry<Map<StringBuilder, Integer>, Map<StringBuilder, Integer>> entry : KA_KOU_PAIRS.entrySet()) {
-                if (rowIndex >= 98) break;
+                if (rowIndex >= 102) break;
 
                 Map<StringBuilder, Integer> kouZaiChouPairs = entry.getKey();
                 Map<StringBuilder, Integer> meiSyouPairs = entry.getValue();
@@ -303,7 +303,7 @@ public class ReadPdfText2 {
                 // Ghi dữ liệu từ mapvalue vào ô A4, B4 và các hàng tiếp theo
                 for (int i = 0; i < valueTemp; i++) {
                     for (Map.Entry<StringBuilder, Integer> meiSyouEntry : meiSyouPairs.entrySet()) {
-                        if (rowIndex >= 98) break;
+                        if (rowIndex >= 102) break;
 
                         String[] line = new String[4];
                         rowIndex++;
