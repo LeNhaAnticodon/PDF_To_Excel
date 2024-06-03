@@ -1,6 +1,11 @@
 import com.opencsv.CSVWriter;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -19,13 +24,13 @@ public class ReadPdfText2 {
     private static String koSyuNumMark = "3";
     private static String kirirosu = "";
 
-    private static final Map<Map<Integer, Integer>, Map<Integer, Integer>> KA_KOU_PAIRS = new LinkedHashMap<>();
+    private static final Map<Map<StringBuilder, Integer>, Map<StringBuilder, Integer>> KA_KOU_PAIRS = new LinkedHashMap<>();
     private static String toriaiText = "";
     private static String[] kakuKakou;
 
     public static final String FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\p23100.pdf";
     public static final String CHL_EXCEL_PATH = "C:\\Users\\HuanTech PC\\Desktop\\chl excel.xlsx";
-    public static final String CSV_FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\chl_excel.csv";
+    public static final String CSV_FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\p23100.csv";
     private static int rowToriAiNum;
 
     public static void main(String[] args) {
@@ -42,10 +47,11 @@ public class ReadPdfText2 {
             if (!document.isEncrypted()) {
                 PDFTextStripper pdfStripper = new PDFTextStripper();
                 toriaiText = pdfStripper.getText(document);
+//                System.out.println(toriaiText);
                 kakuKakou = toriaiText.split("加工No:");
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());;
         }
     }
 
@@ -119,8 +125,8 @@ public class ReadPdfText2 {
 
             String kaKouText = kakuKakou[i];
 
-            Map<Integer, Integer> kouZaiChouPairs = new LinkedHashMap<>();
-            Map<Integer, Integer> meiSyouPairs = new LinkedHashMap<>();
+            Map<StringBuilder, Integer> kouZaiChouPairs = new LinkedHashMap<>();
+            Map<StringBuilder, Integer> meiSyouPairs = new LinkedHashMap<>();
 
             String[] kaKouLines = kaKouText.split("\n");
 
@@ -128,15 +134,16 @@ public class ReadPdfText2 {
                 if (line.contains("鋼材長:") && line.contains("本数:")) {
                     String kouZaiChou = extractValue(line, "鋼材長:", "mm");
                     String honSuu = extractValue(line, "本数:", " ").split(" ")[0];
-
-                    kouZaiChouPairs.put(convertStringToIntAndMul(kouZaiChou, 1), convertStringToIntAndMul(honSuu, 1));
+                    kouZaiChouPairs.put(new StringBuilder().append(convertStringToIntAndMul(kouZaiChou, 1)), convertStringToIntAndMul(honSuu, 1));
                 }
 
                 if (line.contains("名称")) {
                     String meiSyouLength = extractValue(line, "名称", "mm x").trim();
-                    String meiSyouHonSuu = extractValue(line, "mm x", "本").trim();
+                    String[] meiSyouLengths = meiSyouLength.split(" ");
+                    String length = meiSyouLengths[meiSyouLengths.length - 1];
 
-                    meiSyouPairs.put(convertStringToIntAndMul(meiSyouLength, 100), convertStringToIntAndMul(meiSyouHonSuu, 1));
+                    String meiSyouHonSuu = extractValue(line, "mm x", "本").trim();
+                    meiSyouPairs.put(new StringBuilder().append(convertStringToIntAndMul(length, 100)), convertStringToIntAndMul(meiSyouHonSuu, 1));
                 }
             }
 
@@ -144,16 +151,16 @@ public class ReadPdfText2 {
         }
 
         KA_KOU_PAIRS.forEach((kouZaiChouPairs, meiSyouPairs) -> {
-            kouZaiChouPairs.forEach((key, value) -> System.out.println("\n" + key + " : " + value));
-            meiSyouPairs.forEach((key, value) -> System.out.println(key + " : " + value));
+            kouZaiChouPairs.forEach((key, value) -> System.out.println("\n" + key.toString() + " : " + value));
+            meiSyouPairs.forEach((key, value) -> System.out.println(key.toString() + " : " + value));
         });
 
-        for (Map.Entry<Map<Integer, Integer>, Map<Integer, Integer>> e : KA_KOU_PAIRS.entrySet()) {
+        for (Map.Entry<Map<StringBuilder, Integer>, Map<StringBuilder, Integer>> e : KA_KOU_PAIRS.entrySet()) {
 
-            Map<Integer, Integer> kouZaiChouPairs = e.getKey();
-            Map<Integer, Integer> meiSyouPairs = e.getValue();
+            Map<StringBuilder, Integer> kouZaiChouPairs = e.getKey();
+            Map<StringBuilder, Integer> meiSyouPairs = e.getValue();
             int kouZaiNum = 1;
-            for (Map.Entry<Integer, Integer> entry : kouZaiChouPairs.entrySet()) {
+            for (Map.Entry<StringBuilder, Integer> entry : kouZaiChouPairs.entrySet()) {
                 kouZaiNum = entry.getValue();
             }
 
@@ -168,7 +175,7 @@ public class ReadPdfText2 {
         System.out.println("\n" + kirirosu);
     }
 
- /*   private static void writeDataToExcel() {
+    private static void writeDataToExcel() {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Sheet1");
 
@@ -201,29 +208,29 @@ public class ReadPdfText2 {
         int rowIndex = 3;
 
         // Ghi dữ liệu từ KA_KOU_PAIRS vào các ô
-        for (Map.Entry<Map<Integer, Integer>, Map<Integer, Integer>> entry : KA_KOU_PAIRS.entrySet()) {
+        for (Map.Entry<Map<StringBuilder, Integer>, Map<StringBuilder, Integer>> entry : KA_KOU_PAIRS.entrySet()) {
             if (rowIndex >= 98) break;
 
-            Map<Integer, Integer> kouZaiChouPairs = entry.getKey();
-            Map<Integer, Integer> meiSyouPairs = entry.getValue();
+            Map<StringBuilder, Integer> kouZaiChouPairs = entry.getKey();
+            Map<StringBuilder, Integer> meiSyouPairs = entry.getValue();
 
-            int keyTemp = 0;
+            String keyTemp = "";
             int valueTemp = 0;
 
             // Ghi dữ liệu từ mapkey vào ô C4
-            for (Map.Entry<Integer, Integer> kouZaiEntry : kouZaiChouPairs.entrySet()) {
+            for (Map.Entry<StringBuilder, Integer> kouZaiEntry : kouZaiChouPairs.entrySet()) {
 
-                keyTemp = kouZaiEntry.getKey();
+                keyTemp = String.valueOf(kouZaiEntry.getKey());
                 valueTemp = kouZaiEntry.getValue();
             }
 
             // Ghi dữ liệu từ mapvalue vào ô A4, B4 và các hàng tiếp theo
             for (int i = 0; i < valueTemp; i++) {
-                for (Map.Entry<Integer, Integer> meiSyouEntry : meiSyouPairs.entrySet()) {
+                for (Map.Entry<StringBuilder, Integer> meiSyouEntry : meiSyouPairs.entrySet()) {
                     if (rowIndex >= 98) break;
 
                     Row row = sheet.createRow(rowIndex++);
-                    row.createCell(0).setCellValue(meiSyouEntry.getKey());
+                    row.createCell(0).setCellValue(String.valueOf(meiSyouEntry.getKey()));
                     row.createCell(1).setCellValue(meiSyouEntry.getValue());
                 }
                 sheet.getRow(rowIndex - meiSyouPairs.size()).createCell(2).setCellValue(keyTemp);
@@ -257,7 +264,7 @@ public class ReadPdfText2 {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }*/
+    }
 
     private static void writeDataToCSV() {
 
@@ -277,35 +284,35 @@ public class ReadPdfText2 {
             int rowIndex = 3;
 
             // Ghi dữ liệu từ KA_KOU_PAIRS vào các ô
-            for (Map.Entry<Map<Integer, Integer>, Map<Integer, Integer>> entry : KA_KOU_PAIRS.entrySet()) {
+            for (Map.Entry<Map<StringBuilder, Integer>, Map<StringBuilder, Integer>> entry : KA_KOU_PAIRS.entrySet()) {
                 if (rowIndex >= 98) break;
 
-                Map<Integer, Integer> kouZaiChouPairs = entry.getKey();
-                Map<Integer, Integer> meiSyouPairs = entry.getValue();
+                Map<StringBuilder, Integer> kouZaiChouPairs = entry.getKey();
+                Map<StringBuilder, Integer> meiSyouPairs = entry.getValue();
 
-                int keyTemp = 0;
+                String keyTemp = "";
                 int valueTemp = 0;
 
                 // Ghi dữ liệu từ mapkey vào ô C4
-                for (Map.Entry<Integer, Integer> kouZaiEntry : kouZaiChouPairs.entrySet()) {
+                for (Map.Entry<StringBuilder, Integer> kouZaiEntry : kouZaiChouPairs.entrySet()) {
 
-                    keyTemp = kouZaiEntry.getKey();
+                    keyTemp = String.valueOf(kouZaiEntry.getKey());
                     valueTemp = kouZaiEntry.getValue();
                 }
 
                 // Ghi dữ liệu từ mapvalue vào ô A4, B4 và các hàng tiếp theo
                 for (int i = 0; i < valueTemp; i++) {
-                    for (Map.Entry<Integer, Integer> meiSyouEntry : meiSyouPairs.entrySet()) {
+                    for (Map.Entry<StringBuilder, Integer> meiSyouEntry : meiSyouPairs.entrySet()) {
                         if (rowIndex >= 98) break;
 
                         String[] line = new String[4];
                         rowIndex++;
-                        line[0] = meiSyouEntry.getKey().toString();
+                        line[0] = String.valueOf(meiSyouEntry.getKey());
                         line[1] = meiSyouEntry.getValue().toString();
 
                         toriaiDatas.add(line);
                     }
-                    toriaiDatas.get(toriaiDatas.size() - meiSyouPairs.size())[2] = String.valueOf(keyTemp);
+                    toriaiDatas.get(toriaiDatas.size() - meiSyouPairs.size())[2] = keyTemp;
                 }
             }
 
@@ -329,7 +336,11 @@ public class ReadPdfText2 {
             writer.writeNext(new String[]{"0", "0", "0", "0"});
 
         } catch (IOException e) {
+            if (e instanceof FileNotFoundException) {
+                System.out.println("File đang được mở bởi người dùng khác");
+            }
             e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
@@ -345,6 +356,8 @@ public class ReadPdfText2 {
             num = Double.parseDouble(textNum);
         } catch (NumberFormatException e) {
             System.out.println("Lỗi chuyển đổi chuỗi không phải số thực sang số");
+            System.out.println(textNum);
+
         }
         if (num != null) {
             return (int) (num * multiplier);
