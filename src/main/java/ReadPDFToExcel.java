@@ -41,6 +41,7 @@ public class ReadPDFToExcel {
 
         for (int i = 1; i < kakuKouzai.length; i++) {
             kakuKakou = kakuKouzai[i].split("加工No:");
+//            System.out.println(kakuKakou[0]);
 
             getKozai();
             getToriaiData();
@@ -85,8 +86,8 @@ public class ReadPDFToExcel {
 
     private static void getKozai() {
 
-        String kouSyu = extractValue(kakuKakou[0], "法:", "梱包");
-        String[] kouSyuNameAndSize = kouSyu.split("-");
+        String kouSyu = extractValue(kakuKakou[0].split("\n")[0], "法:", "梱包");
+        String[] kouSyuNameAndSize  = kouSyu.split("-");
         koSyuName = kouSyuNameAndSize[0].trim();
 
         switch (koSyuName) {
