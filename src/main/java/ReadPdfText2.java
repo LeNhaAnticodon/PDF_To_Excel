@@ -28,9 +28,9 @@ public class ReadPdfText2 {
     private static String toriaiText = "";
     private static String[] kakuKakou;
 
-    public static final String FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\P30X30X3.2.pdf";
-    public static final String CHL_EXCEL_PATH = "C:\\Users\\HuanTech PC\\Desktop\\P30X30X3.2.xlsx";
-    public static final String CSV_FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\P30X30X3.2.csv";
+    public static final String FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\加工明細 17839書.pdf";
+    public static final String CHL_EXCEL_PATH = "C:\\Users\\HuanTech PC\\Desktop\\加工明細 17839書.xlsx";
+    public static final String CSV_FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\加工明細 17839書.csv";
     private static int rowToriAiNum;
 
     public static void main(String[] args) {

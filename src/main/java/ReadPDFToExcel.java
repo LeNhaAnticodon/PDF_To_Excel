@@ -24,10 +24,10 @@ public class ReadPDFToExcel {
     private static String kirirosu = "";
 
 
-    private static final String FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\加工明細書.pdf";
+    private static final String FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\加工明細 17839書.pdf";
 
-    private static final String CHL_EXCEL_PATH = "C:\\Users\\HuanTech PC\\Desktop\\加工明細書.xlsx";
-    private static final String CSV_FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\加工明細書.csv";
+    private static final String CHL_EXCEL_PATH = "C:\\Users\\HuanTech PC\\Desktop\\加工明細 17839書.xlsx";
+    private static final String CSV_FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\加工明細 17839書.csv";
     private static int rowToriAiNum;
 
     private static String kouSyu;
@@ -35,11 +35,29 @@ public class ReadPDFToExcel {
     public static void main(String[] args) {
 
         String[] kakuKouSyu = getFullToriaiText();
-        getHeaderData(kakuKouSyu);
+        getHeaderData(kakuKouSyu[0]);
 
-        for (int i = 1; i < kakuKouSyu.length; i++) {
-            String[] kakuKakou = kakuKouSyu[i].split("加工No:");
-//            System.out.println(kakuKakou[0]);
+        List<String> kakuKouSyuList = new LinkedList<>(Arrays.asList(kakuKouSyu));
+        int kakuKouSyuListSize = kakuKouSyuList.size();
+
+        for (int i = 1; i < kakuKouSyuListSize; i++) {
+            String KouSyuName = extractValue(kakuKouSyuList.get(i), "法:", "梱包");
+
+            if (i > 1) {
+                String KouSyuNameBefore = extractValue(kakuKouSyuList.get(i - 1), "法:", "梱包");
+
+                if (KouSyuName.equals(KouSyuNameBefore)) {
+                    kakuKouSyuList.set(i - 1, kakuKouSyuList.get(i - 1).concat(kakuKouSyuList.get(i)));
+                    kakuKouSyuList.remove(i);
+                    i--;
+                    kakuKouSyuListSize--;
+                }
+            }
+        }
+        System.out.println(kakuKouSyuList.get(kakuKouSyuList.size() - 2));
+
+        for (int i = 1; i < kakuKouSyuList.size(); i++) {
+            String[] kakuKakou = kakuKouSyuList.get(i).split("加工No:");
 
             getKouSyu(kakuKakou);
             Map<Map<StringBuilder, Integer>, Map<StringBuilder, Integer>> kaKouPairs = getToriaiData(kakuKakou);
@@ -70,9 +88,7 @@ public class ReadPDFToExcel {
         return kakuKouSyu;
     }
 
-    private static void getHeaderData(String[] kakuKouSyu) {
-        String header = kakuKouSyu[0];
-        String[] linesHeader = header.split("\n");
+    private static void getHeaderData(String header) {
 
         String nouKi = extractValue(header, "期[", "]");
         String[] nouKiArr = nouKi.split("/");
