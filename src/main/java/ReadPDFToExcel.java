@@ -20,56 +20,58 @@ public class ReadPDFToExcel {
     private static int size1;
     private static int size2;
     private static int size3 = 0;
-    private static String koSyuName = "";
     private static String koSyuNumMark = "3";
     private static String kirirosu = "";
 
-    private static final Map<Map<StringBuilder, Integer>, Map<StringBuilder, Integer>> KA_KOU_PAIRS = new LinkedHashMap<>();
-    private static String toriaiText = "";
-    private static String[] kakuKakou;
 
-    public static final String FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\cac vat lieu.pdf";
-    public static String CHL_EXCEL_PATH = "C:\\Users\\HuanTech PC\\Desktop\\cac vat lieu.xlsx";
-    public static String CSV_FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\cac vat lieu.csv";
+    private static final String FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\加工明細書.pdf";
+
+    private static final String CHL_EXCEL_PATH = "C:\\Users\\HuanTech PC\\Desktop\\加工明細書.xlsx";
+    private static final String CSV_FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\加工明細書.csv";
     private static int rowToriAiNum;
-    private static String[] kakuKouzai;
+
+    private static String kouSyu;
 
     public static void main(String[] args) {
 
-        getFullToriaiText();
-        getHeaderData();
+        String[] kakuKouSyu = getFullToriaiText();
+        getHeaderData(kakuKouSyu);
 
-        for (int i = 1; i < kakuKouzai.length; i++) {
-            kakuKakou = kakuKouzai[i].split("加工No:");
+        for (int i = 1; i < kakuKouSyu.length; i++) {
+            String[] kakuKakou = kakuKouSyu[i].split("加工No:");
 //            System.out.println(kakuKakou[0]);
 
-            getKozai();
-            getToriaiData();
-//        writeDataToExcel();
-            writeDataToCSV();
+            getKouSyu(kakuKakou);
+            Map<Map<StringBuilder, Integer>, Map<StringBuilder, Integer>> kaKouPairs = getToriaiData(kakuKakou);
+//            writeDataToExcel(kaKouPairs);
+            writeDataToCSV(kaKouPairs);
         }
 
     }
 
-    private static void getFullToriaiText() {
+    private static String[] getFullToriaiText() {
+        String[] kakuKouSyu = new String[0];
         try {
             PDDocument document = PDDocument.load(new File(FILE_PATH));
             if (!document.isEncrypted()) {
                 PDFTextStripper pdfStripper = new PDFTextStripper();
-                toriaiText = pdfStripper.getText(document);
+                String toriaiText = pdfStripper.getText(document);
 
-                kakuKouzai = toriaiText.split("材寸");
+                kakuKouSyu = toriaiText.split("材寸");
 
 //                System.out.println(toriaiText);
 
             }
         } catch (IOException e) {
-            System.out.println(e.getMessage());;
+            System.out.println(e.getMessage());
+            ;
         }
+
+        return kakuKouSyu;
     }
 
-    private static void getHeaderData() {
-        String header = kakuKouzai[0];
+    private static void getHeaderData(String[] kakuKouSyu) {
+        String header = kakuKouSyu[0];
         String[] linesHeader = header.split("\n");
 
         String nouKi = extractValue(header, "期[", "]");
@@ -80,17 +82,16 @@ public class ReadPDFToExcel {
         kyakuSakiMei = extractValue(header, "客先名[", "]");
 
 
-
         System.out.println(shortNouKi + " : " + kouJiMe + " : " + kyakuSakiMei);
     }
 
-    private static void getKozai() {
+    private static void getKouSyu(String[] kakuKakou) {
 
-        String kouSyu = extractValue(kakuKakou[0].split("\n")[0], "法:", "梱包");
-        String[] kouSyuNameAndSize  = kouSyu.split("-");
-        koSyuName = kouSyuNameAndSize[0].trim();
+        kouSyu = extractValue(kakuKakou[0].split("\n")[0], "法:", "梱包");
+        String[] kouSyuNameAndSize = kouSyu.split("-");
+        String kouSyuName = kouSyuNameAndSize[0].trim();
 
-        switch (koSyuName) {
+        switch (kouSyuName) {
             case "K":
                 koSyuNumMark = "3";
                 break;
@@ -116,6 +117,10 @@ public class ReadPDFToExcel {
 
         String[] koSyuSizeArr = kouSyuNameAndSize[1].split("x");
 
+        size1 = 0;
+        size2 = 0;
+        size3 = 0;
+
         if (koSyuSizeArr.length == 3) {
             size1 = convertStringToIntAndMul(koSyuSizeArr[1], 10);
             size2 = convertStringToIntAndMul(koSyuSizeArr[0], 10);
@@ -130,12 +135,13 @@ public class ReadPDFToExcel {
         }
     }
 
-    private static void getToriaiData() {
+    private static Map<Map<StringBuilder, Integer>, Map<StringBuilder, Integer>> getToriaiData(String[] kakuKakou) {
         rowToriAiNum = 0;
-        System.out.println(koSyuName);
+
+        Map<Map<StringBuilder, Integer>, Map<StringBuilder, Integer>> kaKouPairs = new LinkedHashMap<>();
 
         if (kakuKakou == null) {
-            return;
+            return kaKouPairs;
         }
         for (int i = 1; i < kakuKakou.length; i++) {
 
@@ -167,15 +173,15 @@ public class ReadPDFToExcel {
                 }
             }
 
-            KA_KOU_PAIRS.put(kouZaiChouPairs, meiSyouPairs);
+            kaKouPairs.put(kouZaiChouPairs, meiSyouPairs);
         }
 
-        KA_KOU_PAIRS.forEach((kouZaiChouPairs, meiSyouPairs) -> {
+        kaKouPairs.forEach((kouZaiChouPairs, meiSyouPairs) -> {
             kouZaiChouPairs.forEach((key, value) -> System.out.println("\n" + key.toString() + " : " + value));
             meiSyouPairs.forEach((key, value) -> System.out.println(key.toString() + " : " + value));
         });
 
-        for (Map.Entry<Map<StringBuilder, Integer>, Map<StringBuilder, Integer>> e : KA_KOU_PAIRS.entrySet()) {
+        for (Map.Entry<Map<StringBuilder, Integer>, Map<StringBuilder, Integer>> e : kaKouPairs.entrySet()) {
 
             Map<StringBuilder, Integer> kouZaiChouPairs = e.getKey();
             Map<StringBuilder, Integer> meiSyouPairs = e.getValue();
@@ -194,9 +200,11 @@ public class ReadPDFToExcel {
 
         System.out.println(rowToriAiNum);
         System.out.println("\n" + kirirosu);
+
+        return kaKouPairs;
     }
 
-    private static void writeDataToExcel() {
+    private static void writeDataToExcel(Map<Map<StringBuilder, Integer>, Map<StringBuilder, Integer>> kaKouPairs) {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Sheet1");
 
@@ -223,7 +231,7 @@ public class ReadPDFToExcel {
         int rowIndex = 3;
 
         // Ghi dữ liệu từ KA_KOU_PAIRS vào các ô
-        for (Map.Entry<Map<StringBuilder, Integer>, Map<StringBuilder, Integer>> entry : KA_KOU_PAIRS.entrySet()) {
+        for (Map.Entry<Map<StringBuilder, Integer>, Map<StringBuilder, Integer>> entry : kaKouPairs.entrySet()) {
             if (rowIndex >= 102) break;
 
             Map<StringBuilder, Integer> kouZaiChouPairs = entry.getKey();
@@ -275,9 +283,10 @@ public class ReadPDFToExcel {
         lastRow.createCell(2).setCellValue(0);
         lastRow.createCell(3).setCellValue(0);
 
-        CHL_EXCEL_PATH = CHL_EXCEL_PATH.substring(0, CHL_EXCEL_PATH.indexOf(".xlsx")) + koSyuName + ".xlsx";
+        String excelPath = CHL_EXCEL_PATH.substring(0, CHL_EXCEL_PATH.lastIndexOf(".")) + " " + kouSyu + ".xlsx";
 
-        try (FileOutputStream fileOut = new FileOutputStream(CHL_EXCEL_PATH)) {
+
+        try (FileOutputStream fileOut = new FileOutputStream(excelPath)) {
             workbook.write(fileOut);
             workbook.close();
         } catch (IOException e) {
@@ -285,10 +294,10 @@ public class ReadPDFToExcel {
         }
     }
 
-    private static void writeDataToCSV() {
-        CSV_FILE_PATH = CSV_FILE_PATH.substring(0, CSV_FILE_PATH.indexOf(".csv")) + koSyuName + ".csv";
+    private static void writeDataToCSV(Map<Map<StringBuilder, Integer>, Map<StringBuilder, Integer>> kaKouPairs) {
+        String csvPath = CSV_FILE_PATH.substring(0, CSV_FILE_PATH.lastIndexOf(".")) + " " + kouSyu + ".csv";
 
-        try (CSVWriter writer = new CSVWriter(new OutputStreamWriter(new FileOutputStream(CSV_FILE_PATH), Charset.forName("MS932")))) {
+        try (CSVWriter writer = new CSVWriter(new OutputStreamWriter(new FileOutputStream(csvPath), Charset.forName("MS932")))) {
             // Ghi thời gian hiện tại vào dòng đầu tiên
             String currentTime = new SimpleDateFormat("yyMMddHHmm").format(new Date());
             writer.writeNext(new String[]{currentTime});
@@ -304,7 +313,7 @@ public class ReadPDFToExcel {
             int rowIndex = 3;
 
             // Ghi dữ liệu từ KA_KOU_PAIRS vào các ô
-            for (Map.Entry<Map<StringBuilder, Integer>, Map<StringBuilder, Integer>> entry : KA_KOU_PAIRS.entrySet()) {
+            for (Map.Entry<Map<StringBuilder, Integer>, Map<StringBuilder, Integer>> entry : kaKouPairs.entrySet()) {
                 if (rowIndex >= 102) break;
 
                 Map<StringBuilder, Integer> kouZaiChouPairs = entry.getKey();

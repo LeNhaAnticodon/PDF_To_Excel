@@ -96,6 +96,10 @@ public class ReadPdfText2 {
 
         String[] koSyuSizeArr = kouSyuNameAndSize[1].split("x");
 
+        size1 = 0;
+        size2 = 0;
+        size3 = 0;
+
         if (koSyuSizeArr.length == 3) {
             size1 = convertStringToIntAndMul(koSyuSizeArr[1], 10);
             size2 = convertStringToIntAndMul(koSyuSizeArr[0], 10);
