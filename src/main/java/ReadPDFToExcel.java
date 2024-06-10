@@ -24,10 +24,10 @@ public class ReadPDFToExcel {
     private static String kirirosu = "";
 
 
-    private static final String FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\加工明細 17839書.pdf";
+    private static final String FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\cac vat lieu.pdf";
 
-    private static final String CHL_EXCEL_PATH = "C:\\Users\\HuanTech PC\\Desktop\\加工明細 17839書.xlsx";
-    private static final String CSV_FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\加工明細 17839書.csv";
+    private static final String CHL_EXCEL_PATH = "C:\\Users\\HuanTech PC\\Desktop\\cac vat lieu.xlsx";
+    private static final String CSV_FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\cac vat lieu.csv";
     private static int rowToriAiNum;
 
     private static String kouSyu;
@@ -43,7 +43,17 @@ public class ReadPDFToExcel {
         for (int i = 1; i < kakuKouSyuListSize; i++) {
             String KouSyuName = extractValue(kakuKouSyuList.get(i), "法:", "梱包");
 
-            if (i > 1) {
+            for (int j = i + 1; j < kakuKouSyuListSize; j++) {
+                String KouSyuNameAfter = extractValue(kakuKouSyuList.get(j), "法:", "梱包");
+                if (KouSyuName.equals(KouSyuNameAfter)) {
+                    kakuKouSyuList.set(i, kakuKouSyuList.get(i).concat(kakuKouSyuList.get(j)));
+                    kakuKouSyuList.remove(j);
+                    j--;
+                    kakuKouSyuListSize--;
+                }
+            }
+
+            /*if (i > 1) {
                 String KouSyuNameBefore = extractValue(kakuKouSyuList.get(i - 1), "法:", "梱包");
 
                 if (KouSyuName.equals(KouSyuNameBefore)) {
@@ -52,9 +62,8 @@ public class ReadPDFToExcel {
                     i--;
                     kakuKouSyuListSize--;
                 }
-            }
+            }*/
         }
-        System.out.println(kakuKouSyuList.get(kakuKouSyuList.size() - 2));
 
         for (int i = 1; i < kakuKouSyuList.size(); i++) {
             String[] kakuKakou = kakuKouSyuList.get(i).split("加工No:");
@@ -62,7 +71,9 @@ public class ReadPDFToExcel {
             getKouSyu(kakuKakou);
             Map<Map<StringBuilder, Integer>, Map<StringBuilder, Integer>> kaKouPairs = getToriaiData(kakuKakou);
 //            writeDataToExcel(kaKouPairs);
-            writeDataToCSV(kaKouPairs);
+            if (kaKouPairs != null) {
+                writeDataToCSV(kaKouPairs);
+            }
         }
 
     }
@@ -82,7 +93,6 @@ public class ReadPDFToExcel {
             }
         } catch (IOException e) {
             System.out.println(e.getMessage());
-            ;
         }
 
         return kakuKouSyu;
@@ -212,6 +222,7 @@ public class ReadPDFToExcel {
         if (rowToriAiNum > 99) {
             rowToriAiNum = 99;
             System.out.println("vượt quá 99 hàng");
+            return null;
         }
 
         System.out.println(rowToriAiNum);
