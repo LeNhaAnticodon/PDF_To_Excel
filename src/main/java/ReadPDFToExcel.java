@@ -23,11 +23,13 @@ public class ReadPDFToExcel {
     private static String koSyuNumMark = "3";
     private static String kirirosu = "";
 
+    private static String fileName = "";
 
-    private static final String FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\cac vat lieu.pdf";
 
-    private static final String CHL_EXCEL_PATH = "C:\\Users\\HuanTech PC\\Desktop\\cac vat lieu.xlsx";
-    private static final String CSV_FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\cac vat lieu.csv";
+    private static final String FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\chl.pdf";
+
+    private static final String CHL_EXCEL_PATH = "C:\\Users\\HuanTech PC\\Desktop\\chl.xlsx";
+    private static final String CSV_FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\chl.csv";
     private static int rowToriAiNum;
 
     private static String kouSyu;
@@ -70,9 +72,10 @@ public class ReadPDFToExcel {
 
             getKouSyu(kakuKakou);
             Map<Map<StringBuilder, Integer>, Map<StringBuilder, Integer>> kaKouPairs = getToriaiData(kakuKakou);
-//            writeDataToExcel(kaKouPairs);
+
             if (kaKouPairs != null) {
-                writeDataToCSV(kaKouPairs);
+                writeDataToExcel(kaKouPairs, i - 1);
+//                writeDataToCSV(kaKouPairs, i - 1);
             }
         }
 
@@ -106,7 +109,7 @@ public class ReadPDFToExcel {
 
         kouJiMe = extractValue(header, "考[", "]");
         kyakuSakiMei = extractValue(header, "客先名[", "]");
-
+        fileName = extractValue(header, "工事名[", "]");
 
         System.out.println(shortNouKi + " : " + kouJiMe + " : " + kyakuSakiMei);
     }
@@ -231,15 +234,29 @@ public class ReadPDFToExcel {
         return kaKouPairs;
     }
 
-    private static void writeDataToExcel(Map<Map<StringBuilder, Integer>, Map<StringBuilder, Integer>> kaKouPairs) {
+    private static void writeDataToExcel(Map<Map<StringBuilder, Integer>, Map<StringBuilder, Integer>> kaKouPairs, int timePlus) {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Sheet1");
 
         // Ghi thời gian hiện tại vào ô A1
         Row row1 = sheet.createRow(0);
         Cell cellA1 = row1.createCell(0);
-        String currentTime = new SimpleDateFormat("yyMMddHHmm").format(new Date());
-        cellA1.setCellValue(currentTime);
+
+        // Ghi thời gian hiện tại vào dòng đầu tiên
+        Date currentDate = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmm");
+
+        // Tăng thời gian lên timePlus phút
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(currentDate);
+        calendar.add(Calendar.MINUTE, timePlus);
+
+        // Lấy thời gian sau khi tăng
+        Date newDate = calendar.getTime();
+
+        String newTime = sdf.format(newDate);
+
+        cellA1.setCellValue(newTime);
 
         // Ghi size1, size2, size3, 1 vào ô A2, B2, C2, D2
         Row row2 = sheet.createRow(1);
@@ -289,19 +306,20 @@ public class ReadPDFToExcel {
             }
         }
 
-        // nếu không có hàng sản phẩm nào thì sẽ chưa tạo hàng 4, 5, 6, 7 và rowIndex vẫn là 3
-        // cần tạo thêm 4 hàng này để ghi các thông tin kouJiMe, kyakuSakiMei, shortNouKi, kirirosu bên dưới
-        for (int i = 0; i < 4; i++) {
+        // nếu không có hàng sản phẩm nào thì sẽ chưa tạo hàng 4, 5, 6, 7, 8 và rowIndex vẫn là 3
+        // cần tạo thêm 4 hàng này để ghi các thông tin kouJiMe, kyakuSakiMei, shortNouKi, kirirosu, fileName bên dưới
+        for (int i = 0; i < 5; i++) {
             if (rowIndex <= i + 3) {
                 sheet.createRow(i + 3);
             }
         }
 
-        // Ghi kouJiMe, kyakuSakiMei, shortNouKi, kirirosu vào ô D4, D5, D6, D7
+        // Ghi kouJiMe, kyakuSakiMei, shortNouKi, kirirosu, fileName + kouSyu vào ô D4, D5, D6, D7
         sheet.getRow(3).createCell(3).setCellValue(kouJiMe);
         sheet.getRow(4).createCell(3).setCellValue(kyakuSakiMei);
         sheet.getRow(5).createCell(3).setCellValue(shortNouKi);
         sheet.getRow(6).createCell(3).setCellValue(kirirosu);
+        sheet.getRow(7).createCell(3).setCellValue(fileName + " " + kouSyu);
 
         // Ghi giá trị 0 vào các ô A99, B99, C99, D99
         Row lastRow = sheet.createRow(rowIndex);
@@ -321,13 +339,26 @@ public class ReadPDFToExcel {
         }
     }
 
-    private static void writeDataToCSV(Map<Map<StringBuilder, Integer>, Map<StringBuilder, Integer>> kaKouPairs) {
+    private static void writeDataToCSV(Map<Map<StringBuilder, Integer>, Map<StringBuilder, Integer>> kaKouPairs, int timePlus) {
         String csvPath = CSV_FILE_PATH.substring(0, CSV_FILE_PATH.lastIndexOf(".")) + " " + kouSyu + ".csv";
 
         try (CSVWriter writer = new CSVWriter(new OutputStreamWriter(new FileOutputStream(csvPath), Charset.forName("MS932")))) {
+
             // Ghi thời gian hiện tại vào dòng đầu tiên
-            String currentTime = new SimpleDateFormat("yyMMddHHmm").format(new Date());
-            writer.writeNext(new String[]{currentTime});
+            Date currentDate = new Date();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmm");
+
+            // Tăng thời gian lên timePlus phút
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(currentDate);
+            calendar.add(Calendar.MINUTE, timePlus);
+
+            // Lấy thời gian sau khi tăng
+            Date newDate = calendar.getTime();
+
+            String newTime = sdf.format(newDate);
+
+            writer.writeNext(new String[]{newTime});
 
             // Ghi size1, size2, size3, 1 vào dòng tiếp theo
             writer.writeNext(new String[]{String.valueOf(size1), String.valueOf(size2), String.valueOf(size3), "1"});
@@ -374,19 +405,20 @@ public class ReadPDFToExcel {
                 }
             }
 
-            // nếu không có hàng sản phẩm nào thì sẽ chưa tạo hàng 4, 5, 6, 7 và rowIndex vẫn là 3
-            // cần tạo thêm 4 hàng này để ghi các thông tin kouJiMe, kyakuSakiMei, shortNouKi, kirirosu bên dưới
-            for (int i = 0; i < 4; i++) {
+            // nếu không có hàng sản phẩm nào thì sẽ chưa tạo hàng 4, 5, 6, 7, 8 và rowIndex vẫn là 3
+            // cần tạo thêm 4 hàng này để ghi các thông tin kouJiMe, kyakuSakiMei, shortNouKi, kirirosu, fileName bên dưới
+            for (int i = 0; i < 5; i++) {
                 if (rowIndex <= i + 3) {
                     toriaiDatas.add(new String[4]);
                 }
             }
 
-            // Ghi kouJiMe, kyakuSakiMei, shortNouKi, kirirosu vào ô D4, D5, D6, D7
+            // Ghi kouJiMe, kyakuSakiMei, shortNouKi, kirirosu, fileName + " " + kouSyu vào ô D4, D5, D6, D7
             toriaiDatas.get(0)[3] = kouJiMe;
             toriaiDatas.get(1)[3] = kyakuSakiMei;
             toriaiDatas.get(2)[3] = shortNouKi;
             toriaiDatas.get(3)[3] = kirirosu;
+            toriaiDatas.get(4)[3] = fileName + " " + kouSyu;
 
             writer.writeAll(toriaiDatas);
 
