@@ -26,10 +26,10 @@ public class ReadPDFToExcel {
     private static String fileName = "";
 
 
-    private static final String FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\chl.pdf";
+    private static final String FILE_PDF_PATH = "C:\\Users\\HuanTech PC\\Desktop\\（ＮＴ）ＢＪ125・ＨＢＪ125.pdf";
 
-    private static final String CHL_EXCEL_PATH = "C:\\Users\\HuanTech PC\\Desktop\\chl.xlsx";
-    private static final String CSV_FILE_PATH = "C:\\Users\\HuanTech PC\\Desktop\\chl.csv";
+    private static final String XLSX_EXCEL_PATH = "C:\\Users\\HuanTech PC\\Desktop\\chl.xlsx";
+    private static final String CSV_EXCEL_PATH = "C:\\Users\\HuanTech PC\\Desktop\\（ＮＴ）ＢＪ125・ＨＢＪ125.csv";
     private static int rowToriAiNum;
 
     private static String kouSyu;
@@ -84,7 +84,7 @@ public class ReadPDFToExcel {
     private static String[] getFullToriaiText() {
         String[] kakuKouSyu = new String[0];
         try {
-            PDDocument document = PDDocument.load(new File(FILE_PATH));
+            PDDocument document = PDDocument.load(new File(FILE_PDF_PATH));
             if (!document.isEncrypted()) {
                 PDFTextStripper pdfStripper = new PDFTextStripper();
                 String toriaiText = pdfStripper.getText(document);
@@ -328,7 +328,7 @@ public class ReadPDFToExcel {
         lastRow.createCell(2).setCellValue(0);
         lastRow.createCell(3).setCellValue(0);
 
-        String excelPath = CHL_EXCEL_PATH.substring(0, CHL_EXCEL_PATH.lastIndexOf(".")) + " " + kouSyu + ".xlsx";
+        String excelPath = XLSX_EXCEL_PATH.substring(0, XLSX_EXCEL_PATH.lastIndexOf(".")) + " " + kouSyu + ".xlsx";
 
 
         try (FileOutputStream fileOut = new FileOutputStream(excelPath)) {
@@ -340,7 +340,7 @@ public class ReadPDFToExcel {
     }
 
     private static void writeDataToCSV(Map<Map<StringBuilder, Integer>, Map<StringBuilder, Integer>> kaKouPairs, int timePlus) {
-        String csvPath = CSV_FILE_PATH.substring(0, CSV_FILE_PATH.lastIndexOf(".")) + " " + kouSyu + ".csv";
+        String csvPath = CSV_EXCEL_PATH.substring(0, CSV_EXCEL_PATH.lastIndexOf(".")) + " " + kouSyu + ".csv";
 
         try (CSVWriter writer = new CSVWriter(new OutputStreamWriter(new FileOutputStream(csvPath), Charset.forName("MS932")))) {
 
